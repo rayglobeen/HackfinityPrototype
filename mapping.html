@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>College Mapping - EduPath</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    
+    /* Core theme styles from About page */
+    .hero-bg { 
+      background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe); 
+      background-size: 400% 400%; 
+      animation: gradientShift 8s ease infinite; 
+    }
+    
+    @keyframes gradientShift { 
+      0%{background-position:0% 50%} 
+      50%{background-position:100% 50%} 
+      100%{background-position:0% 50%} 
+    }
+    
+    .glass { 
+      background: rgba(255,255,255,0.1); 
+      backdrop-filter: blur(20px); 
+      border: 1px solid rgba(255,255,255,0.2); 
+    }
+    
+    .hero-title { 
+      background: linear-gradient(135deg, #ffffff, #f8fafc, #e2e8f0); 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent; 
+      background-clip: text; 
+      text-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+    }
+    
+    /* College card styles */
+    .college-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      cursor: pointer;
+    }
+    
+    .college-card:hover {
+      transform: translateX(8px);
+      box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.3);
+      background: linear-gradient(135deg, rgba(255,255,255,1), rgba(249,250,251,1));
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    
+    .college-card:active {
+      transform: translateX(4px) scale(0.98);
+    }
+    
+    /* Click for more button */
+    .click-more {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    
+    .click-more:hover {
+      background: linear-gradient(135deg, #764ba2, #667eea);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+    
+    /* Map section styles */
+    .map-container {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(249,250,251,0.95));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+    
+    /* Toggle button */
+    .toggle-btn {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background: #e5e7eb;
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .toggle-btn.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .toggle-btn.active .toggle-slider {
+      transform: translateX(30px);
+    }
+    
+    /* Scrollbar styling */
+    .college-list::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .college-list::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.5);
+      border-radius: 10px;
+    }
+    
+    .college-list::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 10px;
+    }
+    
+    .college-list::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #764ba2, #667eea);
+    }
+    
+    /* Page transition */
+    .page {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .page.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Info page styles */
+    .info-section {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(249,250,251,0.95));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(99, 102, 241, 0.1);
+    }
+    
+    .facility-badge {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-block;
+      margin: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    .facility-badge:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 text-gray-800 overflow-x-hidden">
+
+  <!-- Glossy Header -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-black/5">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+      <h1 class="text-2xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">EduPath</h1>
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="px-4 py-2 rounded-xl text-white font-semibold bg-gradient-to-r from-indigo-600 to-purple-600">← Back to Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Background orbs -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full opacity-20 animate-pulse"></div>
+    <div class="absolute top-96 right-20 w-24 h-24 bg-gradient-to-r from-pink-400 to-red-500 rounded-full opacity-20 animate-pulse"></div>
+    <div class="absolute bottom-40 left-1/4 w-40 h-40 bg-gradient-to-r from-green-400 to-blue-500 rounded-full opacity-15 animate-pulse"></div>
+    <div class="absolute top-1/2 right-1/3 w-36 h-36 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-full opacity-15 animate-pulse"></div>
+  </div>
+
+  <!-- Main College Mapping Page -->
+  <div id="mainPage" class="page active">
+    <!-- Header -->
+    <header class="hero-bg relative py-20 text-white">
+      <div class="absolute inset-0 bg-black/20"></div>
+      <div class="relative z-10 max-w-7xl mx-auto px-6">
+        <div class="flex justify-between items-center mb-8">
+          <a href="index.html" class="px-5 py-2 rounded-full bg-white/20 text-white font-semibold border border-white/40 shadow-sm hover:shadow-md hover:bg-white/30 transition backdrop-blur-sm">
+            ← Back to Home
+          </a>
+          <nav class="flex gap-4">
+            <a href="about.html" class="px-5 py-2 rounded-full bg-white/10 text-white font-medium border border-white/30 hover:bg-white/20 transition backdrop-blur-sm">About</a>
+            <a href="login.html" class="px-5 py-2 rounded-full bg-white/10 text-white font-medium border border-white/30 hover:bg-white/20 transition backdrop-blur-sm">Login</a>
+          </nav>
+        </div>
+        <h1 class="hero-title text-5xl md:text-6xl font-black text-center">Smart College Mapping</h1>
+        <p class="text-center text-xl mt-4 text-white/90">Find the perfect college near you</p>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-4 border border-gray-100">
+        <div class="text-gray-700 font-semibold mb-4 px-2">
+          SHOWING NEARBY COLLEGES : BHUBANESWAR <span class="text-gray-500">&lt;LOCATION ICON&gt;</span>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left Side - College List -->
+          <div class="college-list overflow-y-auto max-h-[500px] pr-2 space-y-3">
+            <!-- College Card 1 -->
+            <div class="college-card p-4 rounded-xl" onclick="showCollegePage('IIT Bhubaneswar')">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h3 class="font-bold text-lg text-gray-800">IIT BHUBANESWAR</h3>
+                  <p class="text-gray-600 text-sm mt-1">GOVERNMENT</p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-700">23KMS AWAY</p>
+                  <span class="click-more mt-2">CLICK FOR MORE</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- College Card 2 -->
+            <div class="college-card p-4 rounded-xl" onclick="showCollegePage('NIT Rourkela')">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h3 class="font-bold text-lg text-gray-800">NIT ROURKELA</h3>
+                  <p class="text-gray-600 text-sm mt-1">GOVERNMENT</p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-700">45KMS AWAY</p>
+                  <span class="click-more mt-2">CLICK FOR MORE</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- College Card 3 -->
+            <div class="college-card p-4 rounded-xl" onclick="showCollegePage('KIIT University')">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h3 class="font-bold text-lg text-gray-800">KIIT UNIVERSITY</h3>
+                  <p class="text-gray-600 text-sm mt-1">PRIVATE</p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-700">12KMS AWAY</p>
+                  <span class="click-more mt-2">CLICK FOR MORE</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- College Card 4 -->
+            <div class="college-card p-4 rounded-xl" onclick="showCollegePage('SOA University')">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h3 class="font-bold text-lg text-gray-800">SOA UNIVERSITY</h3>
+                  <p class="text-gray-600 text-sm mt-1">PRIVATE</p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-700">8KMS AWAY</p>
+                  <span class="click-more mt-2">CLICK FOR MORE</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- College Card 5 -->
+            <div class="college-card p-4 rounded-xl" onclick="showCollegePage('Utkal University')">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h3 class="font-bold text-lg text-gray-800">UTKAL UNIVERSITY</h3>
+                  <p class="text-gray-600 text-sm mt-1">GOVERNMENT</p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-gray-700">15KMS AWAY</p>
+                  <span class="click-more mt-2">CLICK FOR MORE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side - Map -->
+          <div class="map-container p-6 rounded-xl">
+            <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg h-[350px] flex items-center justify-center relative overflow-hidden">
+              <!-- Dummy Map -->
+              <svg viewBox="0 0 400 300" class="w-full h-full">
+                <path d="M50,150 Q100,100 150,120 T250,100 Q300,120 350,150" stroke="#667eea" stroke-width="2" fill="none" opacity="0.3"/>
+                <path d="M80,180 L120,160 L180,170 L220,140 L280,160 L320,180" stroke="#764ba2" stroke-width="2" fill="none" opacity="0.3"/>
+                <circle cx="200" cy="150" r="8" fill="#667eea" class="animate-pulse"/>
+                <text x="210" y="155" font-size="12" fill="#667eea">You</text>
+                <circle cx="120" cy="100" r="5" fill="#764ba2"/>
+                <circle cx="280" cy="120" r="5" fill="#764ba2"/>
+                <circle cx="150" cy="180" r="5" fill="#764ba2"/>
+                <circle cx="250" cy="170" r="5" fill="#764ba2"/>
+                <circle cx="320" cy="110" r="5" fill="#764ba2"/>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <p class="text-gray-400 font-semibold bg-white/80 px-4 py-2 rounded-lg">DUMMY MAP</p>
+              </div>
+            </div>
+            
+            <!-- Google Maps Access -->
+            <div class="mt-6 flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
+              <div class="flex items-center gap-3">
+                <svg class="w-8 h-8" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                  <circle cx="12" cy="9" r="2.5" fill="white"/>
+                </svg>
+                <span class="font-bold text-gray-700">Google Maps</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-600">Access Location</span>
+                <div class="toggle-btn" onclick="toggleLocation(this)">
+                  <div class="toggle-slider"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 py-12 mt-12 relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900"></div>
+      <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Cpath d="M20 20c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8 8 3.6 8 8zm0 0c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8-8 3.6-8 8z"/%3E%3C/g%3E%3C/svg%3E')]"></div>
+      <div class="relative z-10 max-w-7xl mx-auto px-6">
+        <div class="grid md:grid-cols-4 gap-12 mb-10">
+          <div class="md:col-span-2">
+            <h5 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">EduPath</h5>
+            <p class="text-gray-400 leading-relaxed">Smart college mapping for smart students.</p>
+          </div>
+          <div>
+            <h6 class="text-white font-bold mb-4">Quick Links</h6>
+            <ul class="space-y-3">
+              <li><a href="index.html" class="hover:text-white transition-colors">Home</a></li>
+              <li><a href="about.html" class="hover:text-white transition-colors">About Us</a></li>
+              <li><a href="#" class="hover:text-white transition-colors">Colleges</a></li>
+            </ul>
+          </div>
+          <div>
+            <h6 class="text-white font-bold mb-4">Contact</h6>
+            <p class="text-gray-400">hello@edupath.com</p>
+            <p class="text-gray-400 mt-2">+91 98765 43210</p>
+          </div>
+        </div>
+        <div class="border-t border-gray-700 pt-6 text-center">
+          <p class="text-gray-500 text-sm">© 2025 EduPath. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- College Information Pages -->
+  <div id="collegePage" class="page">
+    <!-- Header -->
+    <header class="hero-bg relative py-16 text-white">
+      <div class="absolute inset-0 bg-black/20"></div>
+      <div class="relative z-10 max-w-7xl mx-auto px-6">
+        <div class="flex justify-between items-center mb-6">
+          <button onclick="showMainPage()" class="px-5 py-2 rounded-full bg-white/20 text-white font-semibold border border-white/40 shadow-sm hover:shadow-md hover:bg-white/30 transition backdrop-blur-sm">
+            ← Back to Colleges
+          </button>
+          <nav class="flex gap-4">
+            <a href="index.html" class="px-5 py-2 rounded-full bg-white/10 text-white font-medium border border-white/30 hover:bg-white/20 transition backdrop-blur-sm">Home</a>
+            <a href="about.html" class="px-5 py-2 rounded-full bg-white/10 text-white font-medium border border-white/30 hover:bg-white/20 transition backdrop-blur-sm">About</a>
+          </nav>
+        </div>
+        <h1 id="collegeName" class="hero-title text-4xl md:text-5xl font-black text-center">College Name</h1>
+        <p id="collegeType" class="text-center text-lg mt-3 text-white/90">Institution Type</p>
+      </div>
+    </header>
+
+    <!-- College Information Content -->
+    <div class="max-w-6xl mx-auto px-6 py-12">
+      <!-- Overview Section -->
+      <div class="info-section rounded-2xl p-8 mb-8 shadow-xl">
+        <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Overview</h2>
+        <p id="collegeOverview" class="text-gray-700 leading-relaxed">
+          A premier institution committed to excellence in education and research.
+        </p>
+      </div>
+
+      <!-- Programs Section -->
+      <div class="info-section rounded-2xl p-8 mb-8 shadow-xl">
+        <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Available Degree Programs</h2>
+        <div id="programsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Programs will be inserted here dynamically -->
+        </div>
+      </div>
+
+      <!-- Medium of Instruction -->
+      <div class="info-section rounded-2xl p-8 mb-8 shadow-xl">
+        <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Medium of Instruction</h2>
+        <p id="mediumInstruction" class="text-gray-700">English</p>
+      </div>
+
+      <!-- Facilities Section -->
+      <div class="info-section rounded-2xl p-8 mb-8 shadow-xl">
+        <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Campus Facilities</h2>
+        <div id="facilitiesList" class="flex flex-wrap gap-2">
+          <!-- Facilities will be inserted here dynamically -->
+        </div>
+      </div>
+
+      <!-- Contact Section -->
+      <div class="info-section rounded-2xl p-8 shadow-xl">
+        <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Contact Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-gray-600 font-semibold mb-2">Address</p>
+            <p id="collegeAddress" class="text-gray-700">Bhubaneswar, Odisha</p>
+          </div>
+          <div>
+            <p class="text-gray-600 font-semibold mb-2">Contact</p>
+            <p id="collegeContact" class="text-gray-700">info@college.edu.in</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer (same as main page) -->
+    <footer class="bg-gray-900 text-gray-300 py-12 mt-12 relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900"></div>
+      <div class="relative z-10 max-w-7xl mx-auto px-6">
+        <div class="text-center">
+          <h5 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">EduPath</h5>
+          <p class="text-gray-500 text-sm">© 2025 EduPath. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // College data
+    const collegeData = {
+      'IIT Bhubaneswar': {
+        type: 'Government Institute of National Importance',
+        overview: 'Indian Institute of Technology Bhubaneswar is a public technical and research university established in 2008. Known for excellence in engineering education and cutting-edge research.',
+        programs: [
+          'B.Tech in Computer Science',
+          'B.Tech in Electrical Engineering',
+          'B.Tech in Mechanical Engineering',
+          'B.Tech in Civil Engineering',
+          'M.Tech Programs',
+          'PhD Programs'
+        ],
+        medium: 'English',
+        facilities: ['Modern Hostel', 'Advanced Labs', 'Central Library', 'High-Speed Internet', 'Sports Complex', 'Medical Center', 'Cafeteria', 'Research Centers'],
+        address: 'Argul, Khordha, Bhubaneswar, Odisha 752050',
+        contact: 'info@iitbbs.ac.in | +91-674-7134444'
+      },
+      'NIT Rourkela': {
+        type: 'Government Institute of National Importance',
+        overview: 'National Institute of Technology Rourkela is one of the premier national level institutions for technical education in the country. Established in 1961.',
+        programs: [
+          'B.Tech in Various Disciplines',
+          'B.Arch',
+          'Integrated M.Sc Programs',
+          'M.Tech Programs',
+          'MBA',
+          'PhD Programs'
+        ],
+        medium: 'English',
+        facilities: ['Hostel Accommodation', 'State-of-art Labs', 'Digital Library', 'Wi-Fi Campus', 'Sports Facilities', 'Health Center', 'Food Courts', 'Innovation Hub'],
+        address: 'NIT Rourkela, Sector 1, Rourkela, Odisha 769008',
+        contact: 'academics@nitrkl.ac.in | +91-661-2462020'
+      },
+      'KIIT University': {
+        type: 'Private Deemed University',
+        overview: 'Kalinga Institute of Industrial Technology is a co-educational, autonomous university located in Bhubaneswar. Known for its diverse academic programs and modern infrastructure.',
+        programs: [
+          'Engineering Programs',
+          'Medical & Dental',
+          'Law Programs',
+          'Management Studies',
+          'Liberal Arts',
+          'Biotechnology'
+        ],
+        medium: 'English',
+        facilities: ['AC Hostel', 'Modern Labs', 'E-Library', 'Campus Wi-Fi', 'Indoor Stadium', 'Hospital', 'Multiple Cafeterias', 'Convention Center'],
+        address: 'KIIT Road, Patia, Bhubaneswar, Odisha 751024',
+        contact: 'kiit@kiit.ac.in | +91-674-7278100'
+      },
+      'SOA University': {
+        type: 'Private Deemed University',
+        overview: 'Siksha O Anusandhan University is a private deemed university located in Bhubaneswar. It offers programs in engineering, medical sciences, and management.',
+        programs: [
+          'Engineering & Technology',
+          'Medicine & Health Sciences',
+          'Dental Sciences',
+          'Pharmaceutical Sciences',
+          'Management & Commerce',
+          'Agriculture Sciences'
+        ],
+        medium: 'English',
+        facilities: ['Separate Hostels', 'Research Labs', 'Central Library', 'Internet Facility', 'Gymnasium', 'Medical Facilities', 'Canteen', 'Auditorium'],
+        address: 'Khandagiri Square, Bhubaneswar, Odisha 751030',
+        contact: 'info@soa.ac.in | +91-674-2350181'
+      },
+      'Utkal University': {
+        type: 'Government State University',
+        overview: 'Utkal University is the oldest university in Odisha and the 17th oldest university in India. It is a teaching-cum-affiliating university established in 1943.',
+        programs: [
+          'Arts & Humanities',
+          'Science Programs',
+          'Commerce',
+          'Law',
+          'Education',
+          'Social Sciences'
+        ],
+        medium: 'English and Odia',
+        facilities: ['Hostel Facilities', 'Laboratories', 'University Library', 'Internet Access', 'Playground', 'Health Unit', 'Cafeteria', 'Guest House'],
+        address: 'Vani Vihar, Bhubaneswar, Odisha 751004',
+        contact: 'registrar@utkaluniversity.ac.in | +91-674-2567740'
+      }
+    };
+
+    // Show college information page
+    function showCollegePage(collegeName) {
+      const college = collegeData[collegeName];
+      if (!college) return;
+
+      // Update college information
+      document.getElementById('collegeName').textContent = collegeName.toUpperCase();
+      document.getElementById('collegeType').textContent = college.type;
+      document.getElementById('collegeOverview').textContent = college.overview;
+      document.getElementById('mediumInstruction').textContent = college.medium;
+      document.getElementById('collegeAddress').textContent = college.address;
+      document.getElementById('collegeContact').textContent = college.contact;
+
+      // Update programs list
+      const programsList = document.getElementById('programsList');
+      programsList.innerHTML = college.programs.map(program => 
+        `<div class="p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+          <p class="text-gray-700 font-medium">• ${program}</p>
+        </div>`
+      ).join('');
+
+      // Update facilities list
+      const facilitiesList = document.getElementById('facilitiesList');
+      facilitiesList.innerHTML = college.facilities.map(facility => 
+        `<span class="facility-badge">${facility}</span>`
+      ).join('');
+
+      // Show college page
+      document.getElementById('mainPage').classList.remove('active');
+      document.getElementById('collegePage').classList.add('active');
+    }
+
+    // Show main page
+    function showMainPage() {
+      document.getElementById('collegePage').classList.remove('active');
+      document.getElementById('mainPage').classList.add('active');
+    }
+
+    // Toggle location access
+    function toggleLocation(button) {
+      button.classList.toggle('active');
+      const isActive = button.classList.contains('active');
+      
+      if (isActive) {
+        // In a real implementation, this would request location access
+        alert('Location access enabled! In a real implementation, this would show your actual location on the map.');
+      } else {
+        alert('Location access disabled.');
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add any initialization code here
+      console.log('College Mapping page loaded');
+    });
+  </script>
+</body>
+</html>
